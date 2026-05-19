@@ -1,0 +1,71 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- Create RemoteEvents for button clicks
+local remoteFolder = Instance.new("Folder")
+remoteFolder.Name = "InvestmentRemotes"
+remoteFolder.Parent = ReplicatedStorage
+
+local buyRemote = Instance.new("RemoteEvent")
+buyRemote.Name = "BuyInvestment"
+buyRemote.Parent = remoteFolder
+
+local sellRemote = Instance.new("RemoteEvent")
+sellRemote.Name = "SellInvestment"
+sellRemote.Parent = remoteFolder
+
+-- Load investment modules
+local DepositAccount = require(script.Parent.DepositAccount)
+local CDAccount = require(script.Parent.CDAccount)
+local IndexFund = require(script.Parent.IndexFund)
+local Stocks = require(script.Parent.Stocks)
+local Gold = require(script.Parent.Gold)
+local Crypto = require(script.Parent.Cryptocurrency)
+
+local investments = {
+	Deposit = DepositAccount,
+	CD = CDAccount,
+	IndexFund = IndexFund,
+	Stocks = Stocks,
+	Gold = Gold,
+	Crypto = Crypto
+}
+
+-- Handle buy requests
+buyRemote.OnServerEvent:Connect(function(player, investmentName, amount)
+	local investment = investments[investmentName]
+	if investment and investment.buy then
+		investment.buy(player, amount)
+	end
+end)
+
+-- Handle sell requests
+sellRemote.OnServerEvent:Connect(function(player, investmentName)
+	local investment = investments[investmentName]
+	if investment and investment.sell then
+		investment.sell(player)
+	end
+end)
+
+-- Apply yearly updates to all investments
+local function applyYearlyUpdates()
+	while true do
+		task.wait(30) -- Every "year"
+		for _, player in pairs(Players:GetPlayers()) do
+			for name, investment in pairs(investments) do
+				if investment.applyInterest then
+					investment.applyInterest(player)
+				elseif investment.applyGrowth then
+					investment.applyGrowth(player)
+				elseif investment.applyMarketChange then
+					investment.applyMarketChange(player)
+				elseif investment.applyChange then
+					investment.applyChange(player)
+				end
+			end
+		end
+		print("Yearly investment updates applied")
+	end
+end
+
+task.spawn(applyYearlyUpdates)

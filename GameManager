@@ -1,0 +1,80 @@
+local Players = game:GetService("Players")
+
+-- Store investment amounts for each player
+local playerInvestments = {}
+
+-- Function to get or create investment table for a player
+local function getPlayerInvestments(player)
+	if not playerInvestments[player] then
+		playerInvestments[player] = {
+			Deposit = 0,
+			CD = 0,
+			IndexFund = 0,
+			Stocks = 0,
+			Gold = 0,
+			Crypto = 0
+		}
+	end
+	return playerInvestments[player]
+end
+
+Players.PlayerAdded:Connect(function(player)
+	-- Player money
+	local playerMoney = Instance.new("NumberValue")
+	playerMoney.Name = "PlayerMoney"
+	playerMoney.Value = 5000
+	playerMoney.Parent = player
+	
+	-- Computer money
+	local computerMoney = Instance.new("NumberValue")
+	computerMoney.Name = "ComputerMoney"
+	computerMoney.Value = 5000
+	computerMoney.Parent = player
+	
+	-- Create investment folder for this player
+	local investmentFolder = Instance.new("Folder")
+	investmentFolder.Name = "Investments"
+	investmentFolder.Parent = player
+	
+	-- Store initial investments
+	local investments = getPlayerInvestments(player)
+	for name, value in pairs(investments) do
+		local investValue = Instance.new("NumberValue")
+		investValue.Name = name
+		investValue.Value = value
+		investValue.Parent = investmentFolder
+	end
+	
+	-- Computer's investment amounts
+	local computerInvestments = Instance.new("Folder")
+	computerInvestments.Name = "ComputerInvestments"
+	computerInvestments.Parent = player
+	
+	for _, investName in pairs({"Deposit", "CD", "IndexFund", "Stocks", "Gold", "Crypto"}) do
+		local investValue = Instance.new("NumberValue")
+		investValue.Name = investName
+		investValue.Value = 0
+		investValue.Parent = computerInvestments
+	end
+	
+	print(player.Name .. " joined with $" .. playerMoney.Value)
+	
+	-- Income every 30 seconds (1 year)
+	task.spawn(function()
+		while player and player.Parent do
+			task.wait(30)
+			if playerMoney and computerMoney then
+				playerMoney.Value = playerMoney.Value + 5000
+				computerMoney.Value = computerMoney.Value + 5000
+				print(player.Name .. " received $5000. Now: $" .. playerMoney.Value)
+			end
+		end
+	end)
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+	playerInvestments[player] = nil
+end)
+
+-- Export functions for other scripts
+_G.getPlayerInvestments = getPlayerInvestments

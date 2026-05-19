@@ -1,0 +1,30 @@
+local Players = game:GetService("Players")
+
+Players.PlayerAdded:Connect(function(player)
+	player.CharacterAdded:Connect(function(character)
+		-- Wait for character to load
+		task.wait(0.5)
+		
+		local humanoid = character:FindFirstChild("Humanoid")
+		local camera = workspace.CurrentCamera
+		
+		if humanoid then
+			-- Disable movement
+			humanoid.WalkSpeed = 0
+			humanoid.JumpPower = 0
+		end
+		
+		-- Lock camera
+		if camera then
+			camera.CameraType = Enum.CameraType.Scriptable
+			camera.CFrame = CFrame.new(Vector3.new(0, 5, 15), Vector3.new(0, 0, 0))
+		end
+		
+		-- Make character invisible
+		for _, part in pairs(character:GetDescendants()) do
+			if part:IsA("BasePart") then
+				part.Transparency = 1
+			end
+		end
+	end)
+end)
